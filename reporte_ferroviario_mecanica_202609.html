@@ -1,0 +1,1129 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reporte Ferroviario de Mecánica</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #0a0f1c;
+            --bg-secondary: #111827;
+            --bg-card: #1a2234;
+            --bg-card-hover: #212d45;
+            --text-primary: #f1f5f9;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            --accent-blue: #3b82f6;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-amber: #f59e0b;
+            --accent-red: #ef4444;
+            --accent-green: #10b981;
+            --border-color: #2d3a4f;
+            --gradient-1: linear-gradient(135deg, #e74c3c 0%, #f39c12 100%);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        .container { max-width: 1400px; margin: 0 auto; padding: 2rem; }
+
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            padding: 2rem 0;
+            margin-bottom: 2rem;
+        }
+
+        .header-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-1);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .header-meta {
+            display: flex;
+            gap: 2rem;
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        .header-meta span { display: flex; align-items: center; gap: 0.5rem; }
+
+        .info-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .info-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 12px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .info-card:hover { transform: translateY(-2px); box-shadow: var(--shadow-lg); }
+        .info-card .label { font-size: 0.85rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 0.5rem; }
+        .info-card .value { font-size: 1.75rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; }
+        .info-card.red .value { color: #e74c3c; }
+        .info-card.orange .value { color: #f39c12; }
+        .info-card.blue .value { color: #3498db; }
+        .info-card.green .value { color: #10b981; }
+
+        .section {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 1.25rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
+        }
+
+        .kpi-card {
+            background: var(--bg-secondary);
+            border-radius: 10px;
+            padding: 1.25rem;
+            text-align: center;
+            border-left: 4px solid #3498db;
+        }
+
+        .kpi-card.traccion-md { border-left-color: #e74c3c; }
+        .kpi-card.sist-electrico { border-left-color: #f39c12; }
+        .kpi-card.neumatica-aire { border-left-color: #3498db; }
+        .kpi-card.frenado-adherencia { border-left-color: #9b59b6; }
+        .kpi-card.seguridad { border-left-color: #1abc9c; }
+        .kpi-card.acople { border-left-color: #e67e22; }
+        .kpi-card.aux-cabina { border-left-color: #95a5a6; }
+        .kpi-card.fallas-mecanicas { border-left-color: #7f8c8d; }
+
+        .kpi-card .kpi-title { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem; text-transform: uppercase; }
+        .kpi-card .kpi-value { font-size: 1.4rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; color: var(--text-primary); }
+        .kpi-card .kpi-percent { font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem; }
+
+        .table-container { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+        th, td { padding: 0.875rem 1rem; text-align: left; }
+        th { background: var(--bg-secondary); color: var(--text-secondary); font-weight: 500; text-transform: uppercase; font-size: 0.75rem; letter-spacing: 0.5px; }
+        tr { border-bottom: 1px solid var(--border-color); }
+        tr:hover { background: var(--bg-card-hover); }
+
+        .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; }
+
+        .chart-container { position: relative; height: 350px; width: 100%; }
+        .chart-container-lg { position: relative; height: 400px; width: 100%; }
+
+        .estado-cerrado { color: #10b981; }
+        .estado-abierto { color: #ef4444; }
+        .estado-seguimiento { color: #f59e0b; }
+
+        .footer {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-top: 1px solid var(--border-color);
+            margin-top: 2rem;
+        }
+
+        .chart-controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            align-items: center;
+        }
+
+        .chart-controls select {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            color: var(--text-primary);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.9rem;
+            cursor: pointer;
+            min-width: 150px;
+        }
+
+        .chart-controls select:focus {
+            outline: none;
+            border-color: var(--accent-blue);
+        }
+
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            align-items: center;
+        }
+
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
+            cursor: pointer;
+            padding: 0.3rem 0.6rem;
+            border-radius: 6px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            transition: all 0.2s;
+        }
+
+        .checkbox-item:hover { border-color: var(--accent-blue); }
+        .checkbox-item input { cursor: pointer; width: 14px; height: 14px; }
+        .checkbox-item label { cursor: pointer; font-size: 0.8rem; color: var(--text-secondary); white-space: nowrap; }
+        .checkbox-item .color-dot { width: 10px; height: 10px; border-radius: 50%; }
+
+        .filter-label {
+            font-size: 0.85rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .subsection-divider {
+            border-top: 1px solid var(--border-color);
+            margin-top: 1.5rem;
+            padding-top: 1.5rem;
+        }
+
+        .subsection-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .subcat-section {
+            border-left: 4px solid;
+        }
+
+        @media (max-width: 768px) {
+            .container { padding: 1rem; }
+            .header-content { flex-direction: column; text-align: center; }
+            .grid-2 { grid-template-columns: 1fr; }
+            .chart-controls { flex-direction: column; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <header class="header">
+        <div class="header-content">
+            <h1>🔧 Reporte Ferroviario de Mecánica</h1>
+            <div class="header-meta">
+                <span>📅 Período: 30/08/2025 - 30/09/2026</span>
+                <span>🕐 Generado: 09/10/2026 13:02</span>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- KPIs Generales -->
+        <div class="info-cards">
+            <div class="info-card red">
+                <div class="label">Total Desperfectos</div>
+                <div class="value">2,217</div>
+            </div>
+            <div class="info-card orange">
+                <div class="label">Tiempo Prom. Cierre</div>
+                <div class="value">1.0 días</div>
+            </div>
+            <div class="info-card blue">
+                <div class="label">Categorías</div>
+                <div class="value">8</div>
+            </div>
+            <div class="info-card green">
+                <div class="label">Subcategorías</div>
+                <div class="value">23</div>
+            </div>
+        </div>
+
+        <!-- KPIs por Categoría -->
+        <div class="section">
+            <h2 class="section-title">📊 Distribución por Categoría de Falla</h2>
+            <div class="kpi-grid">
+                
+                <div class="kpi-card traccion-md">
+                    <div class="kpi-title">TRACCION/MD</div>
+                    <div class="kpi-value">591</div>
+                    <div class="kpi-percent">26.7%</div>
+                </div>
+                
+                <div class="kpi-card sist-electrico">
+                    <div class="kpi-title">SIST. ELECTRICO</div>
+                    <div class="kpi-value">261</div>
+                    <div class="kpi-percent">11.8%</div>
+                </div>
+                
+                <div class="kpi-card neumatica-aire">
+                    <div class="kpi-title">NEUMATICA/AIRE</div>
+                    <div class="kpi-value">264</div>
+                    <div class="kpi-percent">11.9%</div>
+                </div>
+                
+                <div class="kpi-card frenado-adherencia">
+                    <div class="kpi-title">FRENADO/ADHERENCIA</div>
+                    <div class="kpi-value">419</div>
+                    <div class="kpi-percent">18.9%</div>
+                </div>
+                
+                <div class="kpi-card seguridad">
+                    <div class="kpi-title">SEGURIDAD</div>
+                    <div class="kpi-value">177</div>
+                    <div class="kpi-percent">8.0%</div>
+                </div>
+                
+                <div class="kpi-card acople">
+                    <div class="kpi-title">ACOPLE</div>
+                    <div class="kpi-value">139</div>
+                    <div class="kpi-percent">6.3%</div>
+                </div>
+                
+                <div class="kpi-card aux-cabina">
+                    <div class="kpi-title">AUX-CABINA</div>
+                    <div class="kpi-value">47</div>
+                    <div class="kpi-percent">2.1%</div>
+                </div>
+                
+                <div class="kpi-card fallas-mecanicas">
+                    <div class="kpi-title">FALLAS-MECANICAS</div>
+                    <div class="kpi-value">319</div>
+                    <div class="kpi-percent">14.4%</div>
+                </div>
+                
+            </div>
+        </div>
+
+        <!-- Tablas Estado y Línea -->
+        <div class="grid-2">
+            <div class="section">
+                <h2 class="section-title">📋 Estado de Boletines</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Estado</th><th>Cantidad</th><th>Porcentaje</th></tr></thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td><span class="estado-cerrado">Cerrado</span></td>
+                                <td>1,418</td>
+                                <td>64.0%</td>
+                            </tr>
+                            
+                            <tr>
+                                <td><span class="estado-abierto">Abierto</span></td>
+                                <td>599</td>
+                                <td>27.0%</td>
+                            </tr>
+                            
+                            <tr>
+                                <td><span class="estado-seguimiento">Seguimiento</span></td>
+                                <td>200</td>
+                                <td>9.0%</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="section">
+                <h2 class="section-title">🛤️ Distribución por Línea</h2>
+                <div class="table-container">
+                    <table>
+                        <thead><tr><th>Línea</th><th>Cantidad</th><th>Porcentaje</th></tr></thead>
+                        <tbody>
+                            
+                            <tr>
+                                <td>San Martin</td>
+                                <td>1,018</td>
+                                <td>45.9%</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>Belgrano</td>
+                                <td>920</td>
+                                <td>41.5%</td>
+                            </tr>
+                            
+                            <tr>
+                                <td>Urquiza</td>
+                                <td>279</td>
+                                <td>12.6%</td>
+                            </tr>
+                            
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Gráfico Tendencia por Categoría -->
+        <div class="section">
+            <h2 class="section-title">📈 Tendencia Mensual por Categoría de Falla</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="lineaTendenciaSelect" onchange="actualizarGraficoTendencia()">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+                
+                <div class="checkbox-group">
+                    <span class="filter-label">Mostrar: </span>
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_total" checked onchange="toggleCategoria('Total')">
+                        <span class="color-dot" style="background: #ffffff;"></span>
+                        <label for="chk_total">Total</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_traccion_md" checked onchange="toggleCategoria('TRACCION/MD')">
+                        <span class="color-dot" style="background: #e74c3c;"></span>
+                        <label for="chk_traccion_md">TRACCION</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_sist_electrico" checked onchange="toggleCategoria('SIST. ELECTRICO')">
+                        <span class="color-dot" style="background: #f39c12;"></span>
+                        <label for="chk_sist_electrico">SIST. EL</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_neumatica_aire" checked onchange="toggleCategoria('NEUMATICA/AIRE')">
+                        <span class="color-dot" style="background: #3498db;"></span>
+                        <label for="chk_neumatica_aire">NEUMATIC</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_frenado_adherencia" checked onchange="toggleCategoria('FRENADO/ADHERENCIA')">
+                        <span class="color-dot" style="background: #9b59b6;"></span>
+                        <label for="chk_frenado_adherencia">FRENADO</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_seguridad" checked onchange="toggleCategoria('SEGURIDAD')">
+                        <span class="color-dot" style="background: #1abc9c;"></span>
+                        <label for="chk_seguridad">SEGURIDA</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_acople" checked onchange="toggleCategoria('ACOPLE')">
+                        <span class="color-dot" style="background: #e67e22;"></span>
+                        <label for="chk_acople">ACOPLE</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_aux_cabina" checked onchange="toggleCategoria('AUX-CABINA')">
+                        <span class="color-dot" style="background: #95a5a6;"></span>
+                        <label for="chk_aux_cabina">AUX-CABI</label>
+                    </div>
+                    
+                    <div class="checkbox-item">
+                        <input type="checkbox" id="chk_fallas_mecanicas" checked onchange="toggleCategoria('FALLAS-MECANICAS')">
+                        <span class="color-dot" style="background: #7f8c8d;"></span>
+                        <label for="chk_fallas_mecanicas">FALLAS-M</label>
+                    </div>
+                    
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="tendenciaChart"></canvas>
+            </div>
+
+            <div class="subsection-divider">
+                <h3 class="subsection-title">🕐 Fallas por Turno de Trabajo</h3>
+                <div class="chart-container">
+                    <canvas id="turnoChartTendencia"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- ========== GRÁFICOS DE SUBCATEGORÍAS ========== -->
+        
+        
+        <div class="section subcat-section" style="border-left-color: #e74c3c;">
+            <h2 class="section-title">🔹 TRACCION/MD - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_traccion_md" onchange="actualizarSubcat('TRACCION/MD')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_traccion_md"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #f39c12;">
+            <h2 class="section-title">🔹 SIST. ELECTRICO - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_sist_electrico" onchange="actualizarSubcat('SIST. ELECTRICO')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_sist_electrico"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #3498db;">
+            <h2 class="section-title">🔹 NEUMATICA/AIRE - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_neumatica_aire" onchange="actualizarSubcat('NEUMATICA/AIRE')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_neumatica_aire"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #9b59b6;">
+            <h2 class="section-title">🔹 FRENADO/ADHERENCIA - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_frenado_adherencia" onchange="actualizarSubcat('FRENADO/ADHERENCIA')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_frenado_adherencia"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #1abc9c;">
+            <h2 class="section-title">🔹 SEGURIDAD - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_seguridad" onchange="actualizarSubcat('SEGURIDAD')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_seguridad"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #e67e22;">
+            <h2 class="section-title">🔹 ACOPLE - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_acople" onchange="actualizarSubcat('ACOPLE')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_acople"></canvas>
+            </div>
+        </div>
+        
+        <div class="section subcat-section" style="border-left-color: #95a5a6;">
+            <h2 class="section-title">🔹 AUX-CABINA - Subcategorías por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="linea_aux_cabina" onchange="actualizarSubcat('AUX-CABINA')">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="chart_aux_cabina"></canvas>
+            </div>
+        </div>
+        
+
+        <!-- Gráfico Categorías por Línea -->
+        <div class="section">
+            <h2 class="section-title">🏢 Distribución de Categorías por Línea</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="lineaCatSelect" onchange="actualizarGraficoCategorias()">
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="categoriasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Gráfico Top Locomotoras -->
+        <div class="section">
+            <h2 class="section-title">🚂 Top 10 Locomotoras con más Desperfectos</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="lineaLocoSelect" onchange="actualizarGraficoLocomotoras()">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="locomotorasChart"></canvas>
+            </div>
+        </div>
+
+        <!-- Tabla Categoría por Línea -->
+        <div class="section">
+            <h2 class="section-title">📊 Categoría de Falla por Línea</h2>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Línea</th>
+                            <th>TRACCION</th><th>SIST. EL</th><th>NEUMATIC</th><th>FRENADO</th><th>SEGURIDA</th><th>ACOPLE</th><th>AUX-CABI</th><th>FALLAS-M</th>
+                            <th>Total</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        
+                        <tr>
+                            <td>Belgrano</td>
+                            <td>232</td><td>87</td><td>112</td><td>123</td><td>117</td><td>18</td><td>37</td><td>194</td>
+                            <td><strong>920</strong></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>San Martin</td>
+                            <td>216</td><td>131</td><td>133</td><td>274</td><td>57</td><td>114</td><td>7</td><td>86</td>
+                            <td><strong>1,018</strong></td>
+                        </tr>
+                        
+                        <tr>
+                            <td>Urquiza</td>
+                            <td>143</td><td>43</td><td>19</td><td>22</td><td>3</td><td>7</td><td>3</td><td>39</td>
+                            <td><strong>279</strong></td>
+                        </tr>
+                        
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Gráfico Estado por Mes -->
+        <div class="section">
+            <h2 class="section-title">📊 Estado de Boletines por Mes</h2>
+            
+            <div class="chart-controls">
+                <div>
+                    <span class="filter-label">Línea: </span>
+                    <select id="lineaEstadoSelect" onchange="actualizarGraficoEstado()">
+                        <option value="Todas">Todas las Líneas</option>
+                        <option value="Belgrano">Belgrano</option><option value="San Martin">San Martin</option><option value="Urquiza">Urquiza</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="chart-container-lg">
+                <canvas id="estadoChart"></canvas>
+            </div>
+        </div>
+
+        <footer class="footer">
+            <p>Reporte Ferroviario de Mecánica | Generado por carlos amaro| camaro@bcyl.com.ar</p>
+        </footer>
+    </div>
+
+    <script>
+        // ==================== DATOS ====================
+        const datosTendencia = {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "categorias": {"TRACCION/MD": [2, 42, 42, 36, 40, 40, 49, 65, 41, 39, 38, 66, 50, 41], "SIST. ELECTRICO": [1, 10, 26, 10, 15, 29, 25, 26, 18, 25, 18, 19, 24, 15], "NEUMATICA/AIRE": [0, 16, 21, 21, 21, 22, 13, 24, 15, 30, 21, 14, 17, 29], "FRENADO/ADHERENCIA": [1, 20, 29, 30, 33, 29, 39, 62, 38, 27, 27, 23, 31, 30], "SEGURIDAD": [0, 6, 8, 8, 7, 13, 17, 28, 2, 14, 20, 18, 19, 17], "ACOPLE": [0, 8, 12, 14, 10, 13, 5, 12, 15, 11, 12, 10, 10, 7], "AUX-CABINA": [0, 1, 3, 5, 3, 0, 6, 4, 2, 4, 1, 5, 9, 4], "FALLAS-MECANICAS": [2, 19, 20, 27, 31, 20, 20, 18, 14, 32, 26, 39, 20, 31]}, "total": [6, 122, 161, 151, 160, 166, 174, 239, 145, 182, 163, 194, 180, 174]}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "categorias": {"TRACCION/MD": [0, 16, 13, 18, 13, 12, 15, 37, 20, 16, 16, 16, 13, 11], "SIST. ELECTRICO": [1, 4, 11, 4, 11, 17, 15, 12, 9, 12, 10, 7, 12, 6], "NEUMATICA/AIRE": [0, 8, 11, 11, 11, 12, 5, 16, 8, 14, 9, 7, 6, 15], "FRENADO/ADHERENCIA": [0, 13, 15, 24, 23, 20, 28, 38, 28, 20, 21, 10, 16, 18], "SEGURIDAD": [0, 2, 5, 5, 3, 4, 3, 3, 0, 7, 5, 12, 2, 6], "ACOPLE": [0, 6, 11, 13, 8, 10, 4, 9, 14, 8, 8, 9, 9, 5], "AUX-CABINA": [0, 0, 0, 1, 1, 0, 2, 2, 0, 0, 0, 0, 1, 0], "FALLAS-MECANICAS": [0, 4, 3, 13, 10, 4, 4, 2, 3, 5, 6, 16, 7, 9]}, "total": [1, 53, 69, 89, 80, 79, 76, 119, 82, 82, 75, 77, 66, 70]}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "categorias": {"TRACCION/MD": [1, 16, 16, 10, 14, 12, 17, 15, 13, 12, 14, 40, 34, 18], "SIST. ELECTRICO": [0, 5, 12, 4, 0, 10, 6, 7, 5, 8, 6, 8, 10, 6], "NEUMATICA/AIRE": [0, 7, 9, 10, 8, 8, 7, 6, 4, 13, 11, 7, 10, 12], "FRENADO/ADHERENCIA": [1, 6, 12, 4, 10, 7, 10, 20, 9, 5, 5, 11, 13, 10], "SEGURIDAD": [0, 4, 2, 3, 4, 9, 14, 25, 2, 7, 14, 6, 17, 10], "ACOPLE": [0, 1, 1, 1, 1, 3, 0, 2, 0, 2, 3, 1, 1, 2], "AUX-CABINA": [0, 1, 2, 3, 2, 0, 3, 2, 2, 4, 1, 5, 8, 4], "FALLAS-MECANICAS": [2, 15, 11, 8, 16, 11, 15, 13, 10, 22, 19, 23, 13, 16]}, "total": [4, 55, 65, 43, 55, 60, 72, 90, 45, 73, 73, 101, 106, 78]}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "categorias": {"TRACCION/MD": [1, 10, 13, 8, 13, 16, 17, 13, 8, 11, 8, 10, 3, 12], "SIST. ELECTRICO": [0, 1, 3, 2, 4, 2, 4, 7, 4, 5, 2, 4, 2, 3], "NEUMATICA/AIRE": [0, 1, 1, 0, 2, 2, 1, 2, 3, 3, 1, 0, 1, 2], "FRENADO/ADHERENCIA": [0, 1, 2, 2, 0, 2, 1, 4, 1, 2, 1, 2, 2, 2], "SEGURIDAD": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1], "ACOPLE": [0, 1, 0, 0, 1, 0, 1, 1, 1, 1, 1, 0, 0, 0], "AUX-CABINA": [0, 0, 1, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 0, 6, 6, 5, 5, 1, 3, 1, 5, 1, 0, 0, 6]}, "total": [1, 14, 27, 19, 25, 27, 26, 30, 18, 27, 15, 16, 8, 26]}};
+        const coloresMecanica = {"TRACCION/MD": "#e74c3c", "SIST. ELECTRICO": "#f39c12", "NEUMATICA/AIRE": "#3498db", "FRENADO/ADHERENCIA": "#9b59b6", "SEGURIDAD": "#1abc9c", "ACOPLE": "#e67e22", "AUX-CABINA": "#95a5a6", "FALLAS-MECANICAS": "#7f8c8d"};
+        const ordenCategorias = ["TRACCION/MD", "SIST. ELECTRICO", "NEUMATICA/AIRE", "FRENADO/ADHERENCIA", "SEGURIDAD", "ACOPLE", "AUX-CABINA", "FALLAS-MECANICAS"];
+        const datosTurnoMensual = {"Todas": {"Ma\u00f1ana": {"TRACCION/MD": [2, 14, 10, 11, 10, 13, 11, 11, 12, 10, 16, 22, 17, 10], "SIST. ELECTRICO": [1, 2, 3, 5, 3, 3, 4, 4, 1, 8, 4, 4, 8, 7], "NEUMATICA/AIRE": [0, 3, 4, 3, 7, 6, 4, 7, 4, 11, 4, 3, 5, 8], "FRENADO/ADHERENCIA": [0, 8, 4, 8, 10, 7, 13, 21, 14, 10, 6, 8, 10, 9], "SEGURIDAD": [0, 2, 3, 3, 2, 4, 6, 12, 2, 3, 9, 0, 5, 6], "ACOPLE": [0, 2, 2, 4, 2, 2, 2, 6, 4, 2, 6, 1, 4, 3], "AUX-CABINA": [0, 1, 1, 0, 1, 0, 1, 1, 0, 2, 0, 0, 1, 1], "FALLAS-MECANICAS": [0, 5, 3, 11, 9, 5, 4, 7, 6, 13, 7, 10, 7, 11]}, "Tarde": {"TRACCION/MD": [0, 16, 19, 12, 16, 8, 21, 25, 22, 12, 13, 26, 14, 12], "SIST. ELECTRICO": [0, 5, 11, 3, 3, 11, 10, 5, 8, 9, 10, 7, 8, 3], "NEUMATICA/AIRE": [0, 5, 5, 14, 5, 6, 2, 8, 8, 7, 7, 2, 8, 10], "FRENADO/ADHERENCIA": [1, 6, 13, 14, 6, 11, 13, 20, 11, 7, 9, 6, 9, 12], "SEGURIDAD": [0, 3, 2, 3, 2, 2, 5, 12, 0, 9, 6, 6, 5, 7], "ACOPLE": [0, 1, 5, 5, 4, 2, 3, 3, 5, 4, 2, 5, 4, 2], "AUX-CABINA": [0, 0, 0, 0, 0, 0, 5, 0, 1, 1, 0, 1, 7, 1], "FALLAS-MECANICAS": [2, 9, 9, 9, 10, 10, 9, 9, 4, 8, 13, 10, 8, 10]}, "Noche": {"TRACCION/MD": [0, 12, 13, 13, 14, 19, 17, 29, 7, 17, 9, 18, 19, 19], "SIST. ELECTRICO": [0, 3, 12, 2, 9, 15, 11, 17, 9, 8, 4, 8, 8, 5], "NEUMATICA/AIRE": [0, 8, 12, 4, 9, 10, 7, 9, 3, 12, 10, 9, 4, 11], "FRENADO/ADHERENCIA": [0, 6, 12, 8, 17, 11, 13, 21, 13, 10, 12, 9, 12, 9], "SEGURIDAD": [0, 1, 3, 2, 3, 7, 6, 4, 0, 2, 5, 12, 9, 4], "ACOPLE": [0, 5, 5, 5, 4, 9, 0, 3, 6, 5, 4, 4, 2, 2], "AUX-CABINA": [0, 0, 2, 5, 2, 0, 0, 3, 1, 1, 1, 4, 1, 2], "FALLAS-MECANICAS": [0, 5, 8, 7, 12, 5, 7, 2, 4, 11, 6, 19, 5, 10]}}, "San Martin": {"Ma\u00f1ana": {"TRACCION/MD": [0, 4, 4, 3, 3, 2, 4, 5, 4, 4, 7, 7, 4, 3], "SIST. ELECTRICO": [1, 1, 0, 0, 2, 2, 2, 0, 0, 2, 2, 2, 5, 4], "NEUMATICA/AIRE": [0, 2, 4, 2, 3, 2, 1, 4, 3, 4, 2, 1, 1, 5], "FRENADO/ADHERENCIA": [0, 6, 2, 6, 7, 5, 13, 10, 11, 8, 5, 2, 7, 8], "SEGURIDAD": [0, 1, 2, 3, 1, 1, 1, 1, 0, 3, 2, 0, 1, 1], "ACOPLE": [0, 2, 2, 4, 2, 1, 2, 4, 4, 2, 5, 1, 3, 3], "AUX-CABINA": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], "FALLAS-MECANICAS": [0, 1, 2, 3, 5, 2, 1, 1, 2, 3, 0, 5, 1, 3]}, "Tarde": {"TRACCION/MD": [0, 6, 6, 8, 5, 3, 6, 15, 13, 5, 6, 5, 5, 4], "SIST. ELECTRICO": [0, 2, 7, 2, 3, 7, 8, 3, 5, 5, 6, 1, 4, 0], "NEUMATICA/AIRE": [0, 2, 1, 8, 5, 5, 1, 6, 3, 4, 2, 1, 2, 5], "FRENADO/ADHERENCIA": [0, 2, 6, 12, 3, 6, 7, 11, 7, 4, 8, 2, 5, 8], "SEGURIDAD": [0, 0, 2, 0, 0, 1, 0, 1, 0, 3, 3, 5, 1, 4], "ACOPLE": [0, 1, 5, 5, 4, 2, 2, 2, 4, 4, 1, 4, 4, 1], "AUX-CABINA": [0, 0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 2, 1, 5, 3, 2, 2, 1, 1, 1, 3, 6, 4, 3]}, "Noche": {"TRACCION/MD": [0, 6, 3, 7, 5, 7, 5, 17, 3, 7, 3, 4, 4, 4], "SIST. ELECTRICO": [0, 1, 4, 2, 6, 8, 5, 9, 4, 5, 2, 4, 3, 2], "NEUMATICA/AIRE": [0, 4, 6, 1, 3, 5, 3, 6, 2, 6, 5, 5, 3, 5], "FRENADO/ADHERENCIA": [0, 5, 7, 6, 13, 9, 8, 17, 10, 8, 8, 6, 4, 2], "SEGURIDAD": [0, 1, 1, 2, 2, 2, 2, 1, 0, 1, 0, 7, 0, 1], "ACOPLE": [0, 3, 4, 4, 2, 7, 0, 3, 6, 2, 2, 4, 2, 1], "AUX-CABINA": [0, 0, 0, 1, 1, 0, 0, 2, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 1, 0, 5, 2, 0, 1, 0, 0, 1, 3, 5, 2, 3]}}, "Belgrano": {"Ma\u00f1ana": {"TRACCION/MD": [1, 6, 3, 5, 5, 2, 4, 4, 4, 3, 7, 14, 11, 4], "SIST. ELECTRICO": [0, 1, 2, 3, 0, 0, 1, 3, 1, 5, 1, 2, 3, 2], "NEUMATICA/AIRE": [0, 1, 0, 1, 3, 3, 3, 2, 1, 6, 2, 2, 4, 3], "FRENADO/ADHERENCIA": [0, 2, 2, 1, 3, 0, 0, 11, 2, 2, 1, 6, 3, 1], "SEGURIDAD": [0, 1, 1, 0, 1, 3, 5, 11, 2, 0, 7, 0, 4, 4], "ACOPLE": [0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 1, 0], "AUX-CABINA": [0, 1, 0, 0, 1, 0, 1, 1, 0, 2, 0, 0, 0, 1], "FALLAS-MECANICAS": [0, 4, 1, 5, 4, 3, 3, 6, 4, 8, 6, 5, 6, 7]}, "Tarde": {"TRACCION/MD": [0, 7, 8, 2, 5, 4, 10, 4, 5, 4, 4, 18, 9, 3], "SIST. ELECTRICO": [0, 2, 4, 1, 0, 3, 2, 2, 2, 3, 3, 5, 3, 3], "NEUMATICA/AIRE": [0, 2, 3, 6, 0, 1, 0, 1, 2, 2, 4, 1, 5, 5], "FRENADO/ADHERENCIA": [1, 4, 7, 2, 3, 5, 5, 8, 4, 2, 1, 3, 3, 3], "SEGURIDAD": [0, 3, 0, 3, 2, 1, 5, 11, 0, 6, 2, 1, 4, 3], "ACOPLE": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 1, 1, 0, 1], "AUX-CABINA": [0, 0, 0, 0, 0, 0, 2, 0, 1, 1, 0, 1, 7, 1], "FALLAS-MECANICAS": [2, 7, 4, 2, 5, 6, 6, 6, 3, 5, 10, 4, 4, 4]}, "Noche": {"TRACCION/MD": [0, 3, 5, 3, 4, 6, 3, 7, 4, 5, 3, 8, 14, 11], "SIST. ELECTRICO": [0, 2, 6, 0, 0, 7, 3, 2, 2, 0, 2, 1, 4, 1], "NEUMATICA/AIRE": [0, 4, 6, 3, 5, 4, 4, 3, 1, 5, 5, 4, 1, 4], "FRENADO/ADHERENCIA": [0, 0, 3, 1, 4, 2, 5, 1, 3, 1, 3, 2, 7, 6], "SEGURIDAD": [0, 0, 1, 0, 1, 5, 4, 3, 0, 1, 5, 5, 9, 3], "ACOPLE": [0, 1, 1, 1, 1, 2, 0, 0, 0, 2, 1, 0, 0, 1], "AUX-CABINA": [0, 0, 2, 3, 1, 0, 0, 1, 1, 1, 1, 4, 1, 2], "FALLAS-MECANICAS": [0, 4, 6, 1, 7, 2, 6, 1, 3, 9, 3, 14, 3, 5]}}, "Urquiza": {"Ma\u00f1ana": {"TRACCION/MD": [1, 4, 3, 3, 2, 9, 3, 2, 4, 3, 2, 1, 2, 3], "SIST. ELECTRICO": [0, 0, 1, 2, 1, 1, 1, 1, 0, 1, 1, 0, 0, 1], "NEUMATICA/AIRE": [0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 0, 0, 0, 0], "FRENADO/ADHERENCIA": [0, 0, 0, 1, 0, 2, 0, 0, 1, 0, 0, 0, 0, 0], "SEGURIDAD": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1], "ACOPLE": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0], "AUX-CABINA": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 0, 0, 3, 0, 0, 0, 0, 0, 2, 1, 0, 0, 1]}, "Tarde": {"TRACCION/MD": [0, 3, 5, 2, 6, 1, 5, 6, 4, 3, 3, 3, 0, 5], "SIST. ELECTRICO": [0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 1, 1, 0], "NEUMATICA/AIRE": [0, 1, 1, 0, 0, 0, 1, 1, 3, 1, 1, 0, 1, 0], "FRENADO/ADHERENCIA": [0, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 1, 1, 1], "SEGURIDAD": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], "ACOPLE": [0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0], "AUX-CABINA": [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 0, 4, 2, 2, 2, 1, 2, 0, 2, 0, 0, 0, 3]}, "Noche": {"TRACCION/MD": [0, 3, 5, 3, 5, 6, 9, 5, 0, 5, 3, 6, 1, 4], "SIST. ELECTRICO": [0, 0, 2, 0, 3, 0, 3, 6, 3, 3, 0, 3, 1, 2], "NEUMATICA/AIRE": [0, 0, 0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 2], "FRENADO/ADHERENCIA": [0, 1, 2, 1, 0, 0, 0, 3, 0, 1, 1, 1, 1, 1], "SEGURIDAD": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "ACOPLE": [0, 1, 0, 0, 1, 0, 0, 0, 0, 1, 1, 0, 0, 0], "AUX-CABINA": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "FALLAS-MECANICAS": [0, 0, 2, 1, 3, 3, 0, 1, 1, 1, 0, 0, 0, 2]}}};
+        const coloresTurnos = {"Ma\u00f1ana": "#f59e0b", "Tarde": "#06b6d4", "Noche": "#8b5cf6"};
+        const ordenTurnos = ["Ma\u00f1ana", "Tarde", "Noche"];
+        const datosCatLinea = {"Belgrano": {"categorias": ["TRACCION/MD", "SIST. ELECTRICO", "NEUMATICA/AIRE", "FRENADO/ADHERENCIA", "SEGURIDAD", "ACOPLE", "AUX-CABINA", "FALLAS-MECANICAS"], "cantidades": [232, 87, 112, 123, 117, 18, 37, 194], "porcentajes": [25.22, 9.46, 12.17, 13.37, 12.72, 1.96, 4.02, 21.09]}, "San Martin": {"categorias": ["TRACCION/MD", "SIST. ELECTRICO", "NEUMATICA/AIRE", "FRENADO/ADHERENCIA", "SEGURIDAD", "ACOPLE", "AUX-CABINA", "FALLAS-MECANICAS"], "cantidades": [216, 131, 133, 274, 57, 114, 7, 86], "porcentajes": [21.22, 12.87, 13.06, 26.92, 5.6, 11.2, 0.69, 8.45]}, "Urquiza": {"categorias": ["TRACCION/MD", "SIST. ELECTRICO", "NEUMATICA/AIRE", "FRENADO/ADHERENCIA", "SEGURIDAD", "ACOPLE", "AUX-CABINA", "FALLAS-MECANICAS"], "cantidades": [143, 43, 19, 22, 3, 7, 3, 39], "porcentajes": [51.25, 15.41, 6.81, 7.89, 1.08, 2.51, 1.08, 13.98]}};
+        const datosLocomotoras = {"Todas": {"locomotoras": [0, 9731, 7915, 7907, 9709, 7934, 9746, 9453, 9430, 9707], "cantidades": [59, 36, 30, 29, 28, 28, 28, 27, 27, 26], "porcentajes": [2.66, 1.62, 1.35, 1.31, 1.26, 1.26, 1.26, 1.22, 1.22, 1.17]}, "Belgrano": {"locomotoras": [9731, 0, 9709, 9746, 9740, 9707, 9724, 9771, 9785, 9779], "cantidades": [36, 32, 28, 28, 26, 26, 24, 23, 21, 20], "porcentajes": [3.91, 3.48, 3.04, 3.04, 2.83, 2.83, 2.61, 2.5, 2.28, 2.17]}, "San Martin": {"locomotoras": [9430, 0, 9453, 9413, 9448, 9459, 9446, 9416, 9437, 9452], "cantidades": [27, 27, 27, 24, 23, 23, 22, 21, 21, 20], "porcentajes": [2.65, 2.65, 2.65, 2.36, 2.26, 2.26, 2.16, 2.06, 2.06, 1.96]}, "Urquiza": {"locomotoras": [7915, 7907, 7934, 7916, 7908, 7921, 7935, 7936, 7932, 7903], "cantidades": [30, 29, 28, 24, 23, 19, 19, 18, 18, 17], "porcentajes": [10.75, 10.39, 10.04, 8.6, 8.24, 6.81, 6.81, 6.45, 6.45, 6.09]}};
+        const datosEstado = {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "estados": {"Abierto": [3, 41, 48, 40, 47, 46, 55, 71, 25, 39, 31, 40, 57, 56], "Seguimiento": [1, 12, 16, 6, 15, 14, 17, 20, 16, 10, 9, 29, 25, 10], "Cerrado": [2, 69, 97, 105, 98, 106, 102, 148, 104, 133, 123, 125, 98, 108]}, "pct_cierre": [33.33, 56.56, 60.25, 69.54, 61.25, 63.86, 58.62, 61.92, 71.72, 73.08, 75.46, 64.43, 54.44, 62.07]}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "estados": {"Abierto": [0, 0, 0, 3, 4, 2, 0, 2, 1, 0, 0, 0, 1, 4], "Seguimiento": [0, 0, 0, 0, 3, 0, 0, 0, 1, 1, 0, 0, 0, 0], "Cerrado": [1, 53, 69, 86, 73, 77, 76, 117, 80, 81, 75, 77, 65, 66]}, "pct_cierre": [100.0, 100.0, 100.0, 96.63, 91.25, 97.47, 100.0, 98.32, 97.56, 98.78, 100.0, 100.0, 98.48, 94.29]}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "estados": {"Abierto": [3, 41, 48, 37, 43, 44, 55, 69, 24, 39, 31, 40, 56, 52], "Seguimiento": [1, 12, 16, 6, 12, 14, 17, 20, 15, 9, 9, 29, 25, 10], "Cerrado": [0, 2, 1, 0, 0, 2, 0, 1, 6, 25, 33, 32, 25, 16]}, "pct_cierre": [0.0, 3.64, 1.54, 0.0, 0.0, 3.33, 0.0, 1.11, 13.33, 34.25, 45.21, 31.68, 23.58, 20.51]}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "estados": {"Abierto": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Seguimiento": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "Cerrado": [1, 14, 27, 19, 25, 27, 26, 30, 18, 27, 15, 16, 8, 26]}, "pct_cierre": [100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0, 100.0]}};
+        const coloresEstados = {"Abierto": "#ef4444", "Seguimiento": "#f59e0b", "Cerrado": "#10b981"};
+        const ordenEstados = ['Abierto', 'Seguimiento', 'Cerrado'];
+        const datosSubcategorias = {"TRACCION/MD": {"orden": ["TRACCION", "TEMPERATURA", "MOTOR/MD"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"TRACCION": [2, 11, 15, 11, 7, 10, 18, 10, 10, 10, 8, 21, 15, 10], "TEMPERATURA": [0, 3, 8, 5, 8, 4, 3, 8, 5, 3, 7, 6, 5, 6], "MOTOR/MD": [0, 28, 19, 20, 25, 26, 28, 47, 26, 26, 23, 39, 30, 25]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"TRACCION": [1, 6, 9, 5, 2, 3, 3, 3, 4, 6, 3, 15, 10, 6], "TEMPERATURA": [0, 1, 1, 2, 3, 3, 2, 2, 3, 1, 5, 4, 4, 3], "MOTOR/MD": [0, 9, 6, 3, 9, 6, 12, 10, 6, 5, 6, 21, 20, 9]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"TRACCION": [0, 2, 2, 4, 0, 4, 6, 3, 4, 0, 4, 2, 3, 1], "TEMPERATURA": [0, 1, 3, 2, 2, 0, 1, 2, 1, 2, 0, 2, 1, 1], "MOTOR/MD": [0, 13, 8, 12, 11, 8, 8, 32, 15, 14, 12, 12, 9, 9]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"TRACCION": [1, 3, 4, 2, 5, 3, 9, 4, 2, 4, 1, 4, 2, 3], "TEMPERATURA": [0, 1, 4, 1, 3, 1, 0, 4, 1, 0, 2, 0, 0, 2], "MOTOR/MD": [0, 6, 5, 5, 5, 12, 8, 5, 5, 7, 5, 6, 1, 7]}}}}, "SIST. ELECTRICO": {"orden": ["P/TIERRA", "LUCES", "F/ELECTRICA"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"P/TIERRA": [0, 1, 6, 3, 0, 6, 2, 4, 2, 7, 4, 4, 7, 3], "LUCES": [0, 6, 12, 6, 10, 14, 14, 11, 11, 7, 8, 1, 9, 5], "F/ELECTRICA": [1, 3, 8, 1, 5, 9, 9, 11, 5, 11, 6, 14, 8, 7]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"P/TIERRA": [0, 1, 4, 1, 0, 4, 1, 3, 1, 5, 2, 0, 2, 0], "LUCES": [0, 3, 3, 2, 0, 3, 3, 3, 1, 1, 0, 1, 4, 2], "F/ELECTRICA": [0, 1, 5, 1, 0, 3, 2, 1, 3, 2, 4, 7, 4, 4]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"P/TIERRA": [0, 0, 0, 0, 0, 2, 1, 0, 0, 2, 1, 2, 4, 2], "LUCES": [0, 2, 8, 4, 8, 11, 9, 6, 7, 5, 8, 0, 4, 2], "F/ELECTRICA": [1, 2, 3, 0, 3, 4, 5, 6, 2, 5, 1, 5, 4, 2]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"P/TIERRA": [0, 0, 2, 2, 0, 0, 0, 1, 1, 0, 1, 2, 1, 1], "LUCES": [0, 1, 1, 0, 2, 0, 2, 2, 3, 1, 0, 0, 1, 1], "F/ELECTRICA": [0, 0, 0, 0, 2, 2, 2, 4, 0, 4, 1, 2, 0, 1]}}}}, "NEUMATICA/AIRE": {"orden": ["COMPRESOR", "DEPOSITO PRINCIPAL", "BAJA PRESION"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"COMPRESOR": [0, 6, 2, 4, 1, 4, 3, 5, 5, 8, 3, 5, 4, 10], "DEPOSITO PRINCIPAL": [0, 3, 4, 0, 0, 3, 3, 2, 1, 6, 1, 2, 3, 0], "BAJA PRESION": [0, 7, 15, 17, 20, 15, 7, 17, 9, 16, 17, 7, 10, 19]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"COMPRESOR": [0, 3, 1, 4, 0, 2, 3, 2, 1, 4, 2, 3, 3, 5], "DEPOSITO PRINCIPAL": [0, 3, 4, 0, 0, 0, 2, 0, 1, 1, 1, 1, 3, 0], "BAJA PRESION": [0, 1, 4, 6, 8, 6, 2, 4, 2, 8, 8, 3, 4, 7]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"COMPRESOR": [0, 2, 1, 0, 1, 1, 0, 3, 3, 3, 0, 2, 1, 4], "DEPOSITO PRINCIPAL": [0, 0, 0, 0, 0, 3, 1, 1, 0, 3, 0, 1, 0, 0], "BAJA PRESION": [0, 6, 10, 11, 10, 8, 4, 12, 5, 8, 9, 4, 5, 11]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"COMPRESOR": [0, 1, 0, 0, 0, 1, 0, 0, 1, 1, 1, 0, 0, 1], "DEPOSITO PRINCIPAL": [0, 0, 0, 0, 0, 0, 0, 1, 0, 2, 0, 0, 0, 0], "BAJA PRESION": [0, 0, 1, 0, 2, 1, 1, 1, 2, 0, 0, 0, 1, 1]}}}}, "FRENADO/ADHERENCIA": {"orden": ["FRENO", "ARENERO", "PATINAJE"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"FRENO": [1, 6, 11, 11, 12, 12, 8, 14, 7, 9, 11, 9, 10, 11], "ARENERO": [0, 14, 16, 16, 20, 15, 28, 46, 29, 17, 16, 13, 17, 19], "PATINAJE": [0, 0, 2, 3, 1, 2, 3, 2, 2, 1, 0, 1, 4, 0]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"FRENO": [1, 3, 6, 2, 4, 2, 3, 3, 1, 2, 2, 5, 4, 3], "ARENERO": [0, 3, 5, 1, 5, 3, 5, 16, 6, 2, 3, 5, 6, 7], "PATINAJE": [0, 0, 1, 1, 1, 2, 2, 1, 2, 1, 0, 1, 3, 0]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"FRENO": [0, 2, 5, 9, 8, 10, 5, 8, 6, 6, 9, 3, 5, 7], "ARENERO": [0, 11, 10, 14, 15, 10, 22, 30, 22, 14, 12, 7, 11, 11], "PATINAJE": [0, 0, 0, 1, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"FRENO": [0, 1, 0, 0, 0, 0, 0, 3, 0, 1, 0, 1, 1, 1], "ARENERO": [0, 0, 1, 1, 0, 2, 1, 0, 1, 1, 1, 1, 0, 1], "PATINAJE": [0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0]}}}}, "SEGURIDAD": {"orden": ["HOMBRE ACTIVO", "MATAFUEGO", "EOT", "OBC", "PCS"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"HOMBRE ACTIVO": [0, 3, 8, 5, 4, 6, 5, 3, 0, 5, 8, 12, 4, 9], "MATAFUEGO": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0], "EOT": [0, 0, 0, 3, 2, 4, 7, 7, 1, 3, 7, 3, 3, 0], "OBC": [0, 2, 0, 0, 1, 1, 4, 17, 1, 6, 3, 2, 8, 5], "PCS": [0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 1, 4, 3]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"HOMBRE ACTIVO": [0, 3, 2, 1, 2, 4, 2, 1, 0, 0, 4, 2, 3, 5], "MATAFUEGO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "EOT": [0, 0, 0, 2, 1, 4, 7, 7, 1, 3, 6, 2, 3, 0], "OBC": [0, 0, 0, 0, 1, 0, 4, 16, 1, 4, 3, 2, 7, 5], "PCS": [0, 1, 0, 0, 0, 1, 1, 1, 0, 0, 1, 0, 4, 0]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"HOMBRE ACTIVO": [0, 0, 5, 4, 2, 2, 3, 2, 0, 5, 4, 10, 1, 4], "MATAFUEGO": [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0], "EOT": [0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0], "OBC": [0, 2, 0, 0, 0, 1, 0, 1, 0, 2, 0, 0, 1, 0], "PCS": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 2]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"HOMBRE ACTIVO": [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "MATAFUEGO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0], "EOT": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "OBC": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "PCS": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]}}}}, "ACOPLE": {"orden": ["MANDIBULA", "MATERIAL RODANTE"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"MANDIBULA": [0, 5, 12, 11, 9, 10, 5, 10, 12, 9, 9, 7, 9, 6], "MATERIAL RODANTE": [0, 3, 0, 3, 1, 3, 0, 2, 3, 2, 3, 3, 1, 1]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"MANDIBULA": [0, 0, 1, 1, 1, 2, 0, 1, 0, 1, 1, 0, 0, 1], "MATERIAL RODANTE": [0, 1, 0, 0, 0, 1, 0, 1, 0, 1, 2, 1, 1, 1]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"MANDIBULA": [0, 5, 11, 10, 7, 8, 4, 9, 12, 7, 8, 7, 9, 5], "MATERIAL RODANTE": [0, 1, 0, 3, 1, 2, 0, 0, 2, 1, 0, 2, 0, 0]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"MANDIBULA": [0, 0, 0, 0, 1, 0, 1, 0, 0, 1, 0, 0, 0, 0], "MATERIAL RODANTE": [0, 1, 0, 0, 0, 0, 0, 1, 1, 0, 1, 0, 0, 0]}}}}, "AUX-CABINA": {"orden": ["AIRE ACONDICIONADO", "LIMPIAPARABRISAS", "ASIENTO", "REJAS"], "lineas": {"Todas": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"AIRE ACONDICIONADO": [0, 1, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 2, 0], "LIMPIAPARABRISAS": [0, 0, 1, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], "ASIENTO": [0, 0, 0, 1, 1, 0, 1, 0, 0, 0, 0, 1, 0, 0], "REJAS": [0, 0, 2, 3, 2, 0, 5, 3, 1, 2, 0, 3, 7, 3]}}, "Belgrano": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"AIRE ACONDICIONADO": [0, 1, 0, 0, 0, 0, 0, 0, 1, 2, 1, 0, 1, 0], "LIMPIAPARABRISAS": [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1], "ASIENTO": [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0], "REJAS": [0, 0, 2, 2, 2, 0, 3, 1, 1, 2, 0, 3, 7, 3]}}, "San Martin": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"AIRE ACONDICIONADO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0], "LIMPIAPARABRISAS": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "ASIENTO": [0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0], "REJAS": [0, 0, 0, 1, 0, 0, 1, 2, 0, 0, 0, 0, 0, 0]}}, "Urquiza": {"meses": ["2025-08", "2025-09", "2025-10", "2025-11", "2025-12", "2026-01", "2026-02", "2026-03", "2026-04", "2026-05", "2026-06", "2026-07", "2026-08", "2026-09"], "subcategorias": {"AIRE ACONDICIONADO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "LIMPIAPARABRISAS": [0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "ASIENTO": [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0], "REJAS": [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]}}}}};
+        const coloresSubcategorias = {"TRACCION/MD": {"TRACCION": "#e74c3c", "TEMPERATURA": "#c0392b", "MOTOR/MD": "#922b21"}, "SIST. ELECTRICO": {"P/TIERRA": "#f39c12", "LUCES": "#d68910", "F/ELECTRICA": "#b9770e"}, "NEUMATICA/AIRE": {"COMPRESOR": "#3498db", "DEPOSITO PRINCIPAL": "#2980b9", "BAJA PRESION": "#1f618d"}, "FRENADO/ADHERENCIA": {"FRENO": "#9b59b6", "ARENERO": "#8e44ad", "PATINAJE": "#6c3483"}, "SEGURIDAD": {"HOMBRE ACTIVO": "#1abc9c", "MATAFUEGO": "#16a085", "EOT": "#138d75", "OBC": "#117a65", "PCS": "#0e6655"}, "ACOPLE": {"MANDIBULA": "#e67e22", "MATERIAL RODANTE": "#ca6f1e"}, "AUX-CABINA": {"AIRE ACONDICIONADO": "#95a5a6", "LIMPIAPARABRISAS": "#7f8c8d", "ASIENTO": "#707b7c", "REJAS": "#616a6b"}};
+        
+        // ==================== GRÁFICO TENDENCIA ====================
+        let categoriasVisibles = { 'Total': true };
+        ordenCategorias.forEach(cat => categoriasVisibles[cat] = true);
+        
+        let chartTendencia = null;
+        
+        function crearGraficoTendencia() {
+            const ctx = document.getElementById('tendenciaChart').getContext('2d');
+            const lineaSeleccionada = document.getElementById('lineaTendenciaSelect').value;
+            const datos = datosTendencia[lineaSeleccionada];
+            
+            const datasets = [{
+                label: 'Total',
+                data: datos.total,
+                borderColor: '#ffffff',
+                backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                borderWidth: 3,
+                fill: false,
+                tension: 0.3,
+                pointBackgroundColor: '#ffffff',
+                pointBorderColor: '#0a0f1c',
+                pointBorderWidth: 2,
+                pointRadius: 5,
+                pointHoverRadius: 7,
+                hidden: !categoriasVisibles['Total']
+            }];
+            
+            ordenCategorias.forEach(cat => {
+                datasets.push({
+                    label: cat,
+                    data: datos.categorias[cat],
+                    borderColor: coloresMecanica[cat],
+                    backgroundColor: coloresMecanica[cat] + '20',
+                    borderWidth: 2,
+                    fill: false,
+                    tension: 0.3,
+                    pointBackgroundColor: coloresMecanica[cat],
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 1,
+                    pointRadius: 3,
+                    pointHoverRadius: 5,
+                    hidden: !categoriasVisibles[cat]
+                });
+            });
+            
+            if (chartTendencia) chartTendencia.destroy();
+            
+            chartTendencia = new Chart(ctx, {
+                type: 'line',
+                data: { labels: datos.meses, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: false },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#2d3a4f',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+        
+        function actualizarGraficoTendencia() { crearGraficoTendencia(); crearGraficoTurnoMensual(); }
+        function toggleCategoria(cat) { categoriasVisibles[cat] = !categoriasVisibles[cat]; crearGraficoTendencia(); crearGraficoTurnoMensual(); }
+        
+        // ==================== GRÁFICO DE TENDENCIA POR TURNO ====================
+        let chartTurnoMensual = null;
+
+        function crearGraficoTurnoMensual() {
+            const ctx = document.getElementById('turnoChartTendencia').getContext('2d');
+            const lineaSeleccionada = document.getElementById('lineaTendenciaSelect').value;
+            const meses = datosTendencia[lineaSeleccionada].meses;
+            const datosTurno = datosTurnoMensual[lineaSeleccionada];
+
+            const datasets = ordenTurnos.map(turno => {
+                const valores = meses.map((mes, idx) => {
+                    let suma = 0;
+                    ordenCategorias.forEach(cat => {
+                        if (categoriasVisibles[cat]) {
+                            suma += datosTurno[turno][cat][idx];
+                        }
+                    });
+                    return suma;
+                });
+                return {
+                    label: turno,
+                    data: valores,
+                    backgroundColor: coloresTurnos[turno] + 'CC',
+                    borderColor: coloresTurnos[turno],
+                    borderWidth: 1,
+                    borderRadius: 4
+                };
+            });
+
+            if (chartTurnoMensual) chartTurnoMensual.destroy();
+
+            chartTurnoMensual = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: meses, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#2d3a4f',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' }, title: { display: true, text: 'Cantidad', color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+        
+        // ==================== GRÁFICOS DE SUBCATEGORÍAS ====================
+        const chartsSubcat = {};
+        
+        function crearGraficoSubcat(categoria) {
+            const catId = categoria.toLowerCase().replace(/\//g, '_').replace(/\./g, '').replace(/ /g, '_').replace(/-/g, '_');
+            const ctx = document.getElementById('chart_' + catId).getContext('2d');
+            const selectId = 'linea_' + catId;
+            const lineaSeleccionada = document.getElementById(selectId).value;
+            
+            const datosCategoria = datosSubcategorias[categoria];
+            const datosLinea = datosCategoria.lineas[lineaSeleccionada];
+            const ordenSubs = datosCategoria.orden;
+            const coloresCat = coloresSubcategorias[categoria];
+            
+            const datasets = ordenSubs.map((sub, index) => ({
+                label: sub,
+                data: datosLinea.subcategorias[sub],
+                backgroundColor: coloresCat[sub] + 'CC',
+                borderColor: coloresCat[sub],
+                borderWidth: 1,
+                borderRadius: 4
+            }));
+            
+            if (chartsSubcat[categoria]) chartsSubcat[categoria].destroy();
+            
+            chartsSubcat[categoria] = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: datosLinea.meses, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                            titleColor: '#f1f5f9',
+                            bodyColor: '#94a3b8',
+                            borderColor: '#2d3a4f',
+                            borderWidth: 1,
+                            padding: 12
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, stacked: false, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' } },
+                        x: { stacked: false, grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+        
+        function actualizarSubcat(categoria) { crearGraficoSubcat(categoria); }
+        
+        // ==================== GRÁFICO CATEGORÍAS POR LÍNEA ====================
+        let chartCategorias = null;
+        
+        function crearGraficoCategorias() {
+            const ctx = document.getElementById('categoriasChart').getContext('2d');
+            const lineaSeleccionada = document.getElementById('lineaCatSelect').value;
+            const datos = datosCatLinea[lineaSeleccionada];
+            
+            const colores = ordenCategorias.map(cat => coloresMecanica[cat] + 'CC');
+            const bordes = ordenCategorias.map(cat => coloresMecanica[cat]);
+            
+            if (chartCategorias) chartCategorias.destroy();
+            
+            chartCategorias = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.categorias,
+                    datasets: [
+                        {
+                            label: 'Cantidad',
+                            data: datos.cantidades,
+                            backgroundColor: colores,
+                            borderColor: bordes,
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Porcentaje',
+                            data: datos.porcentajes,
+                            type: 'line',
+                            borderColor: '#ffffff',
+                            backgroundColor: 'rgba(255,255,255,0.2)',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            pointBackgroundColor: '#ffffff',
+                            pointRadius: 5,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === 'Porcentaje') return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
+                                    return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' }, title: { display: true, text: 'Cantidad', color: '#94a3b8' } },
+                        y1: { position: 'right', beginAtZero: true, max: 100, grid: { drawOnChartArea: false }, ticks: { color: '#ffffff', callback: v => v + '%' }, title: { display: true, text: '%', color: '#ffffff' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+        
+        function actualizarGraficoCategorias() { crearGraficoCategorias(); }
+        
+        // ==================== GRÁFICO LOCOMOTORAS ====================
+        let chartLocomotoras = null;
+        
+        function crearGraficoLocomotoras() {
+            const ctx = document.getElementById('locomotorasChart').getContext('2d');
+            const lineaSeleccionada = document.getElementById('lineaLocoSelect').value;
+            const datos = datosLocomotoras[lineaSeleccionada];
+            
+            if (chartLocomotoras) chartLocomotoras.destroy();
+            
+            chartLocomotoras = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: datos.locomotoras,
+                    datasets: [
+                        {
+                            label: 'Cantidad',
+                            data: datos.cantidades,
+                            backgroundColor: 'rgba(231, 76, 60, 0.7)',
+                            borderColor: '#e74c3c',
+                            borderWidth: 1,
+                            borderRadius: 4,
+                            yAxisID: 'y'
+                        },
+                        {
+                            label: 'Porcentaje',
+                            data: datos.porcentajes,
+                            type: 'line',
+                            borderColor: '#f39c12',
+                            borderWidth: 3,
+                            fill: false,
+                            tension: 0.3,
+                            pointBackgroundColor: '#f39c12',
+                            pointRadius: 5,
+                            yAxisID: 'y1'
+                        }
+                    ]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    indexAxis: 'y',
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === 'Porcentaje') return ctx.dataset.label + ': ' + ctx.parsed.x.toFixed(1) + '%';
+                                    return ctx.dataset.label + ': ' + ctx.parsed.x.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' } },
+                        x1: { position: 'top', beginAtZero: true, grid: { drawOnChartArea: false }, ticks: { color: '#f39c12', callback: v => v + '%' } },
+                        y: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    }
+                }
+            });
+        }
+        
+        function actualizarGraficoLocomotoras() { crearGraficoLocomotoras(); }
+        
+        // ==================== GRÁFICO ESTADO ====================
+        let chartEstado = null;
+        
+        function crearGraficoEstado() {
+            const ctx = document.getElementById('estadoChart').getContext('2d');
+            const lineaSeleccionada = document.getElementById('lineaEstadoSelect').value;
+            const datos = datosEstado[lineaSeleccionada];
+            
+            if (chartEstado) chartEstado.destroy();
+            
+            const datasets = ordenEstados.map(estado => ({
+                label: estado,
+                data: datos.estados[estado],
+                backgroundColor: coloresEstados[estado] + 'CC',
+                borderColor: coloresEstados[estado],
+                borderWidth: 1,
+                borderRadius: 4,
+                yAxisID: 'y'
+            }));
+            
+            datasets.push({
+                label: '% Cierre',
+                data: datos.pct_cierre,
+                type: 'line',
+                borderColor: '#8b5cf6',
+                borderWidth: 3,
+                fill: false,
+                tension: 0.3,
+                pointBackgroundColor: '#8b5cf6',
+                pointRadius: 5,
+                yAxisID: 'y1'
+            });
+            
+            chartEstado = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: datos.meses, datasets: datasets },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { display: true, position: 'top', labels: { color: '#94a3b8' } },
+                        tooltip: {
+                            callbacks: {
+                                label: function(ctx) {
+                                    if (ctx.dataset.label === '% Cierre') return ctx.dataset.label + ': ' + ctx.parsed.y.toFixed(1) + '%';
+                                    return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString();
+                                }
+                            }
+                        }
+                    },
+                    scales: {
+                        y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.08)' }, ticks: { color: '#94a3b8' }, title: { display: true, text: 'Cantidad', color: '#94a3b8' } },
+                        y1: { position: 'right', beginAtZero: true, max: 100, grid: { drawOnChartArea: false }, ticks: { color: '#8b5cf6', callback: v => v + '%' }, title: { display: true, text: '% Cierre', color: '#8b5cf6' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8', maxRotation: 45 } }
+                    }
+                }
+            });
+        }
+        
+        function actualizarGraficoEstado() { crearGraficoEstado(); }
+        
+        // ==================== INICIALIZAR ====================
+        document.addEventListener('DOMContentLoaded', function() {
+            crearGraficoTendencia();
+            crearGraficoTurnoMensual();
+            
+            // Crear gráficos de subcategorías
+            const categorias = ["TRACCION/MD", "SIST. ELECTRICO", "NEUMATICA/AIRE", "FRENADO/ADHERENCIA", "SEGURIDAD", "ACOPLE", "AUX-CABINA"];
+            categorias.forEach(cat => crearGraficoSubcat(cat));
+            
+            crearGraficoCategorias();
+            crearGraficoLocomotoras();
+            crearGraficoEstado();
+        });
+    </script>
+</body>
+</html>
